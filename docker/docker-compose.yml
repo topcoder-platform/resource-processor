@@ -1,6 +1,6 @@
 version: '3'
 services:
-  resources-api:
+  resource-processor:
     image: resource-processor:latest
     build:
       context: ../
