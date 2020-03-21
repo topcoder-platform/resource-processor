@@ -44,92 +44,61 @@ app.get('/v4/projects/:projectId', (req, res) => {
   let result
   if (projectId === '123') {
     result = {
-      id: '6eba42a4-f7f9-4f1e-bf81-a8553ba5372a',
-      version: 'v4',
-      result: {
-        success: false,
-        status: 404,
-        content: 'it is not found'
-      }
+      message: 'project not found for id 123',
+      debug: 'Error: project not found for id 8913555\n    at /usr/src/app/dist/routes/projects/get.js:159:20\n    at Immediate._onImmediate (/usr/src/app/node_modules/async-listener/glue.js:188:31)\nFrom previous event:\n    at Immediate.<anonymous> (/usr/src/app/node_modules/async-listener/glue.js:188:31)\n    at runCallback (timers.js:781:20)\n    at tryOnImmediate (timers.js:743:5)\n    at processImmediate [as _immediateCallback] (timers.js:714:5)\nFrom previous event:\n    at retrieveProjectFromDB (/usr/src/app/dist/routes/projects/get.js:155:6)\n    at /usr/src/app/dist/routes/projects/get.js:197:14\n    at propagateAslWrapper (/usr/src/app/node_modules/async-listener/index.js:504:23)\n    at /usr/src/app/node_modules/async-listener/glue.js:188:31\n    at /usr/src/app/node_modules/async-listener/index.js:541:70\n    at /usr/src/app/node_modules/async-listener/glue.js:188:31\n    at <anonymous>\n    at process._tickDomainCallback (internal/process/next_tick.js:228:7)\n    at process.fallback (/usr/src/app/node_modules/async-listener/index.js:565:15)'
     }
   } else {
     result = {
-      id: '7eba42a4-f7f9-4f1e-bf81-a8553ba5371a',
-      version: 'v4',
-      result: {
-        success: true,
-        status: 200,
-        content: {
-          id: projectId,
-          directProjectId: null,
-          billingAccountId: null,
-          name: 'Alpha',
-          description: 'And away we go.',
-          external: null,
-          bookmarks: null,
-          estimatedPrice: '0.00',
-          actualPrice: null,
-          terms: [],
-          type: 'app_dev',
-          status: 'paused',
-          details: {
-            fontIds: [],
-            offlineAccess: null,
-            deviceIds: ['PHONE'],
-            offlineAccessComment: null,
-            orientationIds: ['PORTRAIT'],
-            iconsetIds: [],
-            usesPersonalInformation: null,
-            colorSwatchIds: [],
-            modelType: 'app-project',
-            version: null,
-            securityLevel: null,
-            features: '[ ]',
-            apiIntegration: null,
-            designNotes: null
-          },
-          challengeEligibility: null,
-          cancelReason: null,
-          templateId: null,
-          createdAt: '2016-04-27T22:15:04.285Z',
-          updatedAt: '2016-10-01T17:33:44.000Z',
+      actualPrice: null,
+      description: 'New project roles',
+      lastActivityAt: '2020-03-14T22:40:31.268Z',
+      billingAccountId: null,
+      challengeEligibility: [],
+      type: 'talent-as-a-service',
+      templateId: 225,
+      deletedBy: null,
+      bookmarks: [],
+      createdAt: '2020-03-11T22:16:01.699Z',
+      lastActivityUserId: '40158997',
+      terms: [],
+      estimatedPrice: null,
+      members: [
+        {
+          createdAt: '2020-03-11T22:16:01.699Z',
+          role: 'customer',
+          updatedBy: 88770049,
+          createdBy: 88770049,
+          isPrimary: true,
+          id: 12506,
+          userId: 88770049,
+          projectId: projectId,
           deletedBy: null,
-          createdBy: 40141336,
-          updatedBy: 40152933,
-          version: 'v2',
-          lastActivityAt: '2016-10-01T17:33:44.000Z',
-          lastActivityUserId: '40152933',
-          members: [{
-            id: 995,
-            userId: 40152933,
-            role: 'manager',
-            isPrimary: true,
-            createdAt: '2016-10-01T17:33:32.000Z',
-            updatedAt: '2016-10-01T17:33:32.000Z',
-            deletedBy: null,
-            createdBy: 40152933,
-            updatedBy: 40152933,
-            projectId
-          }, {
-            id: 998,
-            userId: 40141336,
-            role: 'manager',
-            isPrimary: true,
-            createdAt: '2016-10-02T17:33:32.000Z',
-            updatedAt: '2016-10-02T17:33:32.000Z',
-            deletedBy: null,
-            createdBy: 40152933,
-            updatedBy: 40152933,
-            projectId
-          }],
-          attachments: [],
-          invites: [],
-          scopeChangeRequests: []
+          updatedAt: '2020-03-11T22:16:01.731Z'
         },
-        metadata: {
-          totalCount: 1
+        {
+          createdAt: '2020-03-14T22:40:31.117Z',
+          role: 'customer',
+          updatedBy: 40158997,
+          createdBy: 40158997,
+          isPrimary: false,
+          id: 12508,
+          projectId: projectId,
+          userId: 40158997,
+          deletedBy: null,
+          updatedAt: '2020-03-14T22:40:31.117Z'
         }
-      }
+      ],
+      invites: [],
+      id: projectId,
+      directProjectId: 21037,
+      cancelReason: null,
+      updatedAt: '2020-03-14T22:40:31.268Z',
+      updatedBy: -101,
+      version: 'v3',
+      external: null,
+      createdBy: 88770049,
+      name: 'Roles &amp; Responsibilities',
+      status: 'in_review'
     }
   }
 
