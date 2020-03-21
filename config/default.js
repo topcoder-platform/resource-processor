@@ -28,7 +28,7 @@ module.exports = {
 
   RESOURCE_ROLE_ID: process.env.RESOURCE_ROLE_ID || '6605f779-b28b-428f-888b-e523b443f3ea',
 
-  GET_PROJECT_API_BASE: process.env.GET_PROJECT_API_BASE || 'http://localhost:4000/v4/projects',
+  GET_PROJECT_API_BASE: process.env.GET_PROJECT_API_BASE || 'http://localhost:4000/v5/projects',
   SEARCH_MEMBERS_API_BASE: process.env.SEARCH_MEMBERS_API_BASE || 'https://api.topcoder.com/v3/members/_search',
   CREATE_RESOURCE_API: process.env.CREATE_RESOURCE_API || 'http://localhost:4000/v5/resources'
 }

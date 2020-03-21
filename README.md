@@ -48,7 +48,7 @@ The following parameters can be set in config files or in env variables:
 - KAFKA_TOPIC: Kafka topic to listen, default value is 'challenge.notification.create'
 - REQUEST_TIMEOUT: superagent request timeout in milliseconds, default value is 20000
 - RESOURCE_ROLE_ID: the challenge member resource role id
-- GET_PROJECT_API_BASE: get project API base URL, default value is mock API 'http://localhost:4000/v4/projects'
+- GET_PROJECT_API_BASE: get project API base URL, default value is mock API 'http://localhost:4000/v5/projects'
 - SEARCH_MEMBERS_API_BASE: search members API base URL, default value is 'https://api.topcoder.com/v3/members/_search'
 - CREATE_RESOURCE_API: create resource API URL, default value is mock API 'http://localhost:4000/v5/resources'
 
