@@ -14,7 +14,7 @@ info: Found member ids [40152933, 40141336] of project id 30055214
 info: Created resource: {
     "challengeId": "5505f779-b28b-428f-888b-e523b443f3ea",
     "memberHandle": "lordofparadox",
-    "roleId": "6605f779-b28b-428f-888b-e523b443f3ea",
+    "roleId": "2a4dc376-a31c-4d00-b173-13934d89e286",
     "id": "d4ac5715-b1ed-430b-86ca-56d022c97ce9",
     "memberId": "9e2ad182-d4f7-4c4d-9421-29bc8bd56dfb",
     "created": "2019-08-20T23:02:45.818Z",
@@ -23,7 +23,7 @@ info: Created resource: {
 info: Created resource: {
     "challengeId": "5505f779-b28b-428f-888b-e523b443f3ea",
     "memberHandle": "SethHafferkamp",
-    "roleId": "6605f779-b28b-428f-888b-e523b443f3ea",
+    "roleId": "2a4dc376-a31c-4d00-b173-13934d89e286",
     "id": "8a835c7e-5a90-47f1-a020-c95c415e32db",
     "memberId": "980bd2a6-b4b6-4253-87e7-67cb931a76a2",
     "created": "2019-08-20T23:02:45.822Z",

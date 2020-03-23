@@ -26,7 +26,7 @@ module.exports = {
   // superagent request timeout in milliseconds
   REQUEST_TIMEOUT: process.env.REQUEST_TIMEOUT ? Number(process.env.REQUEST_TIMEOUT) : 20000,
 
-  RESOURCE_ROLE_ID: process.env.RESOURCE_ROLE_ID || '6605f779-b28b-428f-888b-e523b443f3ea',
+  RESOURCE_ROLE_ID: process.env.RESOURCE_ROLE_ID || '2a4dc376-a31c-4d00-b173-13934d89e286',
 
   GET_PROJECT_API_BASE: process.env.GET_PROJECT_API_BASE || 'http://localhost:4000/v5/projects',
   SEARCH_MEMBERS_API_BASE: process.env.SEARCH_MEMBERS_API_BASE || 'https://api.topcoder-dev.com/v3/members/_search',
