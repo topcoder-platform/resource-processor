@@ -138,7 +138,6 @@ To run integration tests with coverage report
 npm run e2e:cov
 ```
 
-
 ## Running tests in CI
 
 - TBD
