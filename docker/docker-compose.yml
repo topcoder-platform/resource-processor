@@ -1,0 +1,7 @@
+version: '3'
+services:
+  resource-processor:
+    image: resource-processor:latest
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile

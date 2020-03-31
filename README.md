@@ -1,9 +1,28 @@
 # Topcoder Challenge Resources Processor
 
-## Dependencies
+This service is used for processing kafka events related to challenge creation and create the default resources based on the members who have access to the same project.
 
-- nodejs https://nodejs.org/en/ (v10+)
-- Kafka
+### Development deployment status
+[![CircleCI](https://circleci.com/gh/topcoder-platform/resource-processor/tree/develop.svg?style=svg)](https://circleci.com/gh/topcoder-platform/resource-processor/tree/develop)
+
+### Production deployment status
+[![CircleCI](https://circleci.com/gh/topcoder-platform/resource-processor/tree/master.svg?style=svg)](https://circleci.com/gh/topcoder-platform/resource-processor/tree/master)
+
+## Intended use
+- Processor
+
+## Related repos
+
+- [Resources API](https://github.com/topcoder-platform/resources-api)
+- [Projects API](https://github.com/topcoder-platform/projects-api)
+- [Member API](https://github.com/appirio-tech/ap-member-microservice)
+
+## Prerequisites
+
+-  [NodeJS](https://nodejs.org/en/) (v10+)
+-  [Kafka](https://kafka.apache.org/)
+-  [Docker](https://www.docker.com/)
+-  [Docker Compose](https://docs.docker.com/compose/)
 
 ## Configuration
 
@@ -29,7 +48,7 @@ The following parameters can be set in config files or in env variables:
 - KAFKA_TOPIC: Kafka topic to listen, default value is 'challenge.notification.create'
 - REQUEST_TIMEOUT: superagent request timeout in milliseconds, default value is 20000
 - RESOURCE_ROLE_ID: the challenge member resource role id
-- GET_PROJECT_API_BASE: get project API base URL, default value is mock API 'http://localhost:4000/v4/projects'
+- GET_PROJECT_API_BASE: get project API base URL, default value is mock API 'http://localhost:4000/v5/projects'
 - SEARCH_MEMBERS_API_BASE: search members API base URL, default value is 'https://api.topcoder.com/v3/members/_search'
 - CREATE_RESOURCE_API: create resource API URL, default value is mock API 'http://localhost:4000/v5/resources'
 
@@ -48,7 +67,12 @@ Also note that there is a `/health` endpoint that checks for the health of the a
 Configuration for the tests is at `config/test.js`, only add such new configurations if different than `config/default.js`:
 - WAIT_TIME: wait time used in test, default is 2000 or 2 seconds
 
-## Local Kafka setup
+## Local Deployment
+
+### Foreman Setup
+To install foreman follow this [link](https://theforeman.org/manuals/1.24/#3.InstallingForeman)
+To know how to use foreman follow this [link](https://theforeman.org/manuals/1.24/#2.Quickstart) 
+### Local Kafka setup
 
 - `http://kafka.apache.org/quickstart` contains details to setup and manage Kafka server,
   below provides details to setup Kafka server in Mac, Windows will use bat commands in bin/windows instead
@@ -73,7 +97,7 @@ Configuration for the tests is at `config/test.js`, only add such new configurat
   `bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic challenge.notification.create --from-beginning`
 
 
-## Local deployment
+### Local deployment
 
 - start mock-api, go to `mock-api` folder, run `npm i` and `npm start`, mock api is running at `http://localhost:4000`
 - go to project root folder, install dependencies `npm i`
@@ -81,59 +105,43 @@ Configuration for the tests is at `config/test.js`, only add such new configurat
 - start processor app `npm start`
 
 
-## Unit Tests and E2E Tests
+## Production deployment
+- TBD
 
+## Running tests
+
+### Configuration
+Test configuration is at `config/test.js`. 
+The following test parameters can be set in config file or in env variables:
+- WAIT_TIME: wait time used in test
+
+### Prepare
 Before running tests, setup and start kafka server, start the mock API, but do not start the processor app.
+ Various config parameters should be properly set.
 
-- run `npm run test` to execute unit tests.
-- run `npm run test:cov` to execute unit tests and generate coverage report.
-- run `npm run e2e` to execute e2e tests.
-- run `npm run e2e:cov` to execute e2e tests and generate coverage report.
+### Running unit tests
+To run unit tests alone
+```bash
+npm run test
+```
+To run unit tests with coverage report
+```bash
+npm run test:cov
+```
+### Running integration tests
+To run integration tests alone
+```bash
+npm run e2e
+```
+To run integration tests with coverage report
+```bash
+npm run e2e:cov
+```
 
+## Running tests in CI
+
+- TBD
 
 ## Verification
 
-- setup and start kafka server, start mock API, start processor app
-- start kafka-console-producer to write messages to `challenge.notification.create` topic:
-  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic challenge.notification.create`
-- write message:
-  `{ "topic": "challenge.notification.create", "originator": "challenge-api", "timestamp": "2019-02-16T00:00:00", "mime-type": "application/json", "payload": { "id": "5505f779-b28b-428f-888b-e523b443f3ea", "typeId": "7705f779-b28b-428f-888b-e523b443f3ea", "track": "code", "name": "test", "description": "desc", "timelineTemplateId": "8805f779-b28b-428f-888b-e523b443f3ea", "phases": [{ "id": "8805f779-b28b-428f-888b-e523b443f3eb", "name": "phase", "isActive": true, "duration": 1000 }], "prizeSets": [{ "type": "Challenge prizes", "prizes": [{ "type": "1st", "value": 600 }] }], "reviewType": "community", "tags": ["tag1"], "projectId": 30055214, "startDate": "2019-02-19T00:00:00", "status": "Draft", "created": "2019-02-16T00:00:00", "createdBy": "tester" } }`
-
-- you will see app logging:
-```bash
-info: Process message of challenge id 5505f779-b28b-428f-888b-e523b443f3ea and project id 30055214
-info: Found member ids [40152933, 40141336] of project id 30055214
-info: Created resource: {
-    "challengeId": "5505f779-b28b-428f-888b-e523b443f3ea",
-    "memberHandle": "lordofparadox",
-    "roleId": "6605f779-b28b-428f-888b-e523b443f3ea",
-    "id": "d4ac5715-b1ed-430b-86ca-56d022c97ce9",
-    "memberId": "9e2ad182-d4f7-4c4d-9421-29bc8bd56dfb",
-    "created": "2019-08-20T23:02:45.818Z",
-    "createdBy": "mock-api"
-}
-info: Created resource: {
-    "challengeId": "5505f779-b28b-428f-888b-e523b443f3ea",
-    "memberHandle": "SethHafferkamp",
-    "roleId": "6605f779-b28b-428f-888b-e523b443f3ea",
-    "id": "8a835c7e-5a90-47f1-a020-c95c415e32db",
-    "memberId": "980bd2a6-b4b6-4253-87e7-67cb931a76a2",
-    "created": "2019-08-20T23:02:45.822Z",
-    "createdBy": "mock-api"
-}
-info: Successfully processed message of challenge id 5505f779-b28b-428f-888b-e523b443f3ea and project id 30055214
-```
-
-
-- you may write invalid messages like:
-  `{ "topic": "challenge.notification.create", "originator": "challenge-api", "timestamp": "2019-02-16T00:00:00", "mime-type": "application/json", "payload": { "id": "abc", "typeId": "7705f779-b28b-428f-888b-e523b443f3ea", "track": "code", "name": "test", "description": "desc", "timelineTemplateId": "8805f779-b28b-428f-888b-e523b443f3ea", "phases": [{ "id": "8805f779-b28b-428f-888b-e523b443f3eb", "name": "phase", "isActive": true, "duration": 1000 }], "prizeSets": [{ "type": "Challenge prizes", "prizes": [{ "type": "1st", "value": 600 }] }], "reviewType": "community", "tags": ["tag1"], "projectId": 30055214, "startDate": "2019-02-19T00:00:00", "status": "Draft", "created": "2019-02-16T00:00:00", "createdBy": "tester" } }`
-
-  `{ "topic": "challenge.notification.create", "originator": "challenge-api", "timestamp": "2019-02-16T00:00:00", "mime-type": "application/json", "payload": { "id": "5505f779-b28b-428f-888b-e523b443f3ea", "typeId": "7705f779-b28b-428f-888b-e523b443f3ea", "track": "code", "name": "test", "description": "desc", "timelineTemplateId": "8805f779-b28b-428f-888b-e523b443f3ea", "phases": [{ "id": "8805f779-b28b-428f-888b-e523b443f3eb", "name": "phase", "isActive": true, "duration": 1000 }], "prizeSets": [{ "type": "Challenge prizes", "prizes": [{ "type": "1st", "value": 600 }] }], "reviewType": "community", "tags": ["tag1"], "projectId": 30055214, "startDate": "2019-02-19T00:00:00", "status": "Draft", "created": "abc", "createdBy": "tester" } }`
-
-  `{ [ { abc`
-- then in the app console, you will see error messages
-
-
-- to test the health check API, start the processor, then browse `http://localhost:3000/health` in a browser,
-  and you will see result `{"checksRun":1}`, you may change the health check API port by setting `PORT` environment variable
-
+Refer to the verification document `Verification.md`

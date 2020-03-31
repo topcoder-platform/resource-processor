@@ -41,12 +41,10 @@ async function getProject (projectId) {
     .get(url)
     .set('Authorization', `Bearer ${token}`)
     .timeout(config.REQUEST_TIMEOUT)
-  const success = _.get(res.body, 'result.success')
-  const status = _.get(res.body, 'result.status')
-  if (!success || !status || status < 200 || status >= 300) {
-    throw new Error(`Failed to get project details of id ${projectId}: ${_.get(res.body, 'result.content')}`)
+  if (res.status !== 200) {
+    throw new Error(`Failed to get project details of id ${projectId}: ${_.get(res.body, 'message')}`)
   }
-  return res.body.result.content
+  return res.body
 }
 
 /**
