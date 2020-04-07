@@ -9,6 +9,7 @@ This service is used for processing kafka events related to challenge creation a
 [![CircleCI](https://circleci.com/gh/topcoder-platform/resource-processor/tree/master.svg?style=svg)](https://circleci.com/gh/topcoder-platform/resource-processor/tree/master)
 
 ## Intended use
+
 - Processor
 
 ## Related repos
