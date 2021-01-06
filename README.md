@@ -45,12 +45,16 @@ The following parameters can be set in config files or in env variables:
 - KAFKA_CLIENT_CERT_KEY: Kafka connection private key, optional, default value is undefined;
     if not provided, then SSL connection is not used, direct insecure connection is used;
     if provided, it can be either path to private key file or private key content
-- KAFKA_TOPIC: Kafka topic to listen, default value is 'challenge.notification.create'
+- CHALLENGE_CREATE_TOPIC: Kafka topic to listen, default value is 'challenge.notification.create'
+- PROJECT_MEMBER_ADDED_TOPIC: Kafka topic to listen when a member is added to a project, default value: connect.notification.project.member.joined
+- PROJECT_MEMBER_REMOVED_TOPIC: Kafka topic to listen when a member is removed to a project, default value: connect.notification.project.member.removed
 - REQUEST_TIMEOUT: superagent request timeout in milliseconds, default value is 20000
 - RESOURCE_ROLE_ID: the challenge member resource role id
+- MANAGER_RESOURCE_ROLE_ID: the challenge manager resource role ID
 - GET_PROJECT_API_BASE: get project API base URL, default value is mock API 'http://localhost:4000/v5/projects'
 - SEARCH_MEMBERS_API_BASE: search members API base URL, default value is 'https://api.topcoder.com/v3/members/_search'
-- CREATE_RESOURCE_API: create resource API URL, default value is mock API 'http://localhost:4000/v5/resources'
+- RESOURCES_API: create resource API URL, default value is mock API 'http://localhost:4000/v5/resources'
+- CHALLENGE_API: the challennge API URL, default value is http://localhost:4000/v5/challenges
 
 
 Set the following environment variables so that the app can get TC M2M token (use 'set' insted of 'export' for Windows OS):
