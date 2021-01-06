@@ -21,14 +21,19 @@ module.exports = {
   // for the local Kafka, they are not needed
   KAFKA_CLIENT_CERT: process.env.KAFKA_CLIENT_CERT,
   KAFKA_CLIENT_CERT_KEY: process.env.KAFKA_CLIENT_CERT_KEY,
-  KAFKA_TOPIC: process.env.KAFKA_TOPIC || 'challenge.notification.create',
+  // Topics
+  CHALLENGE_CREATE_TOPIC: process.env.CHALLENGE_CREATE_TOPIC || 'challenge.notification.create',
+  PROJECT_MEMBER_ADDED_TOPIC: process.env.PROJECT_MEMBER_ADDED_TOPIC || 'connect.notification.project.member.joined',
+  PROJECT_MEMBER_REMOVED_TOPIC: process.env.PROJECT_MEMBER_REMOVED_TOPIC || 'connect.notification.project.member.removed',
 
   // superagent request timeout in milliseconds
   REQUEST_TIMEOUT: process.env.REQUEST_TIMEOUT ? Number(process.env.REQUEST_TIMEOUT) : 20000,
 
   RESOURCE_ROLE_ID: process.env.RESOURCE_ROLE_ID || '2a4dc376-a31c-4d00-b173-13934d89e286',
+  MANAGER_RESOURCE_ROLE_ID: process.env.MANAGER_RESOURCE_ROLE_ID || '0e9c6879-39e4-4eb6-b8df-92407890faf1',
 
   GET_PROJECT_API_BASE: process.env.GET_PROJECT_API_BASE || 'http://localhost:4000/v5/projects',
   SEARCH_MEMBERS_API_BASE: process.env.SEARCH_MEMBERS_API_BASE || 'https://api.topcoder-dev.com/v3/members/_search',
-  CREATE_RESOURCE_API: process.env.CREATE_RESOURCE_API || 'http://localhost:4000/v5/resources'
+  RESOURCES_API: process.env.RESOURCES_API || 'http://localhost:4000/v5/resources',
+  CHALLENGE_API: process.env.CHALLENGE_API || 'http://localhost:4000/v5/challenges'
 }

@@ -75,7 +75,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
       let message = _.cloneDeep(testMessage)
       message = _.omit(message, requiredField)
       try {
-        await service.processMessage(message)
+        await service.handleChallengeCreate(message)
       } catch (err) {
         assertValidationError(err, `"${_.last(requiredField.split('.'))}" is required`)
         return
@@ -89,7 +89,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
       const message = _.cloneDeep(testMessage)
       _.set(message, stringField, 123)
       try {
-        await service.processMessage(message)
+        await service.handleChallengeCreate(message)
       } catch (err) {
         assertValidationError(err, `"${_.last(stringField.split('.'))}" must be a string`)
         return
@@ -101,7 +101,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
       const message = _.cloneDeep(testMessage)
       _.set(message, stringField, '')
       try {
-        await service.processMessage(message)
+        await service.handleChallengeCreate(message)
       } catch (err) {
         assertValidationError(err, `"${_.last(stringField.split('.'))}" is not allowed to be empty`)
         return
@@ -115,7 +115,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
       const message = _.cloneDeep(testMessage)
       _.set(message, guidField, '12345')
       try {
-        await service.processMessage(message)
+        await service.handleChallengeCreate(message)
       } catch (err) {
         assertValidationError(err, `"${_.last(guidField.split('.'))}" must be a valid GUID`)
         return
@@ -130,7 +130,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
       const message = _.cloneDeep(testMessage)
       _.set(message, positiveIntegerField, -123)
       try {
-        await service.processMessage(message)
+        await service.handleChallengeCreate(message)
       } catch (err) {
         assertValidationError(err, `"${_.last(positiveIntegerField.split('.'))}" must be a positive number`)
         return
@@ -144,7 +144,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
       const message = _.cloneDeep(testMessage)
       _.set(message, dateField, 'abc')
       try {
-        await service.processMessage(message)
+        await service.handleChallengeCreate(message)
       } catch (err) {
         assertValidationError(err,
           `"${_.last(dateField.split('.'))}" must be a number of milliseconds or valid date string`)
@@ -158,7 +158,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
     const message = _.cloneDeep(testMessage)
     message.payload.projectId = notFoundProjectId
     try {
-      await service.processMessage(message)
+      await service.handleChallengeCreate(message)
     } catch (err) {
       should.equal(err.message, `Failed to get project details of id ${notFoundProjectId}: it is not found`)
       return
@@ -170,7 +170,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
     const message = _.cloneDeep(testMessage)
     message.payload.id = createResourceFailedChallengeId
     try {
-      await service.processMessage(message)
+      await service.handleChallengeCreate(message)
     } catch (err) {
       should.equal(err.message, 'Internal Server Error')
       return
@@ -179,7 +179,7 @@ describe('Topcoder Challenge Resources Processor Service Unit Tests', () => {
   })
 
   it('test process message successfully', async () => {
-    await service.processMessage(testMessage)
+    await service.handleChallengeCreate(testMessage)
     assertInfoMessage(`Process message of challenge id ${
       testMessage.payload.id} and project id ${testMessage.payload.projectId}`)
     assertInfoMessage(`Successfully processed message of challenge id ${

@@ -34,7 +34,14 @@ const dataHandler = (messageSet, topic, partition) => Promise.each(messageSet, (
   }
 
   return (async () => {
-    await ProcessorService.processMessage(messageJSON)
+    if (topic === config.CHALLENGE_CREATE_TOPIC) {
+      await ProcessorService.handleChallengeCreate(messageJSON)
+    } else if (topic === config.PROJECT_MEMBER_ADDED_TOPIC) {
+      await ProcessorService.handleMemberAdded(messageJSON)
+    } else if (topic === config.PROJECT_MEMBER_REMOVED_TOPIC) {
+      await ProcessorService.handleMemberRemoved(messageJSON)
+    }
+    logger.debug('Successfully processed message')
   })()
     // commit offset
     .then(() => consumer.commitOffset({ topic, partition, offset: m.offset }))
@@ -57,7 +64,11 @@ function check () {
 logger.info('Starting kafka consumer')
 consumer
   .init([{
-    subscriptions: [config.KAFKA_TOPIC],
+    subscriptions: [
+      config.CHALLENGE_CREATE_TOPIC,
+      config.PROJECT_MEMBER_ADDED_TOPIC,
+      config.PROJECT_MEMBER_REMOVED_TOPIC
+    ],
     handler: dataHandler
   }])
   .then(() => {
