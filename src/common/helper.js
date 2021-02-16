@@ -48,6 +48,75 @@ async function getProject (projectId) {
 }
 
 /**
+ * Get all challenges for a specific project
+ * @param {Number} projectId the project ID
+ */
+async function getProjectChallenges (projectId) {
+  const token = await getM2MToken()
+  const url = `${config.CHALLENGE_API}`
+  let allChallenges = []
+  let page = 1
+  while (true) {
+    const res = await superagent
+      .get(url)
+      .query({
+        projectId,
+        isLightweight: true,
+        perPage: 100
+      })
+      .set('Authorization', `Bearer ${token}`)
+    if (res.status !== 200) {
+      throw new Error(`Failed to get project details of id ${projectId}: ${_.get(res.body, 'message')}`)
+    }
+    const challenges = res.body || []
+    if (challenges.length === 0) {
+      break
+    }
+    allChallenges = allChallenges.concat(_.map(challenges, c => _.pick(c, ['id'])))
+    page += 1
+    if (res.headers['x-total-pages'] && page > Number(res.headers['x-total-pages'])) {
+      break
+    }
+  }
+  return allChallenges
+}
+
+/**
+ * Get challenge resources
+ * @param {String} challengeId the challenge ID
+ * @param {String} roleId the role ID
+ */
+async function getChallengeResources (challengeId, roleId) {
+  const token = await getM2MToken()
+  const url = `${config.RESOURCES_API}`
+  let allResources = []
+  let page = 1
+  while (true) {
+    const res = await superagent
+      .get(url)
+      .query({
+        challengeId,
+        roleId: roleId || config.RESOURCE_ROLE_ID,
+        perPage: 100
+      })
+      .set('Authorization', `Bearer ${token}`)
+    if (res.status !== 200) {
+      throw new Error(`Failed to get resources for challenge id ${challengeId}: ${_.get(res.body, 'message')}`)
+    }
+    const resources = res.body || []
+    if (resources.length === 0) {
+      break
+    }
+    allResources = allResources.concat(resources)
+    page += 1
+    if (res.headers['x-total-pages'] && page > Number(res.headers['x-total-pages'])) {
+      break
+    }
+  }
+  return allResources
+}
+
+/**
  * Search members of given member ids
  * @param {Array} memberIds the member ids
  * @return {Array} searched members
@@ -79,18 +148,41 @@ async function searchMembers (memberIds) {
  * Create resource.
  * @param {String} challengeId the challenge id
  * @param {String} memberHandle the member handle
+ * @param {String} roleId the role ID
  * @return {Object} the created resource
  */
-async function createResource (challengeId, memberHandle) {
+async function createResource (challengeId, memberHandle, roleId) {
   // M2M token is cached by 'tc-core-library-js' lib
   const token = await getM2MToken()
   const res = await superagent
-    .post(config.CREATE_RESOURCE_API)
+    .post(config.RESOURCES_API)
     .set('Authorization', `Bearer ${token}`)
     .send({
       challengeId,
       memberHandle,
-      roleId: config.RESOURCE_ROLE_ID
+      roleId: roleId || config.RESOURCE_ROLE_ID
+    })
+    .timeout(config.REQUEST_TIMEOUT)
+  return res.body
+}
+
+/**
+ * Delete resource.
+ * @param {String} challengeId the challenge id
+ * @param {String} memberHandle the member handle
+ * @param {String} roleId the role ID
+ * @return {Object} the created resource
+ */
+async function deleteResource (challengeId, memberHandle, roleId) {
+  // M2M token is cached by 'tc-core-library-js' lib
+  const token = await getM2MToken()
+  const res = await superagent
+    .delete(config.RESOURCES_API)
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      challengeId,
+      memberHandle,
+      roleId: roleId || config.RESOURCE_ROLE_ID
     })
     .timeout(config.REQUEST_TIMEOUT)
   return res.body
@@ -100,5 +192,8 @@ module.exports = {
   getKafkaOptions,
   getProject,
   searchMembers,
-  createResource
+  createResource,
+  deleteResource,
+  getProjectChallenges,
+  getChallengeResources
 }
