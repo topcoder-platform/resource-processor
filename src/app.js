@@ -5,6 +5,7 @@
 global.Promise = require('bluebird')
 const config = require('config')
 const Kafka = require('no-kafka')
+const _ = require('lodash')
 const healthcheck = require('topcoder-healthcheck-dropin')
 const logger = require('./common/logger')
 const helper = require('./common/helper')
@@ -34,14 +35,18 @@ const dataHandler = (messageSet, topic, partition) => Promise.each(messageSet, (
   }
 
   return (async () => {
-    if (topic === config.CHALLENGE_CREATE_TOPIC) {
-      await ProcessorService.handleChallengeCreate(messageJSON)
-    } else if (topic === config.PROJECT_MEMBER_ADDED_TOPIC) {
-      await ProcessorService.handleMemberAdded(messageJSON)
-    } else if (topic === config.PROJECT_MEMBER_REMOVED_TOPIC) {
-      await ProcessorService.handleMemberRemoved(messageJSON)
+    if (_.includes(config.IGNORED_ORIGINATORS, messageJSON.originator)) {
+      logger.error(`The message originator is in the ignored list. Originator: ${messageJSON.originator}`)
+    } else {
+      if (topic === config.CHALLENGE_CREATE_TOPIC) {
+        await ProcessorService.handleChallengeCreate(messageJSON)
+      } else if (topic === config.PROJECT_MEMBER_ADDED_TOPIC) {
+        await ProcessorService.handleMemberAdded(messageJSON)
+      } else if (topic === config.PROJECT_MEMBER_REMOVED_TOPIC) {
+        await ProcessorService.handleMemberRemoved(messageJSON)
+      }
+      logger.debug('Successfully processed message')
     }
-    logger.debug('Successfully processed message')
   })()
     // commit offset
     .then(() => consumer.commitOffset({ topic, partition, offset: m.offset }))

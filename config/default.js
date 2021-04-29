@@ -35,5 +35,7 @@ module.exports = {
   GET_PROJECT_API_BASE: process.env.GET_PROJECT_API_BASE || 'http://localhost:4000/v5/projects',
   SEARCH_MEMBERS_API_BASE: process.env.SEARCH_MEMBERS_API_BASE || 'https://api.topcoder-dev.com/v3/members/_search',
   RESOURCES_API: process.env.RESOURCES_API || 'http://localhost:4000/v5/resources',
-  CHALLENGE_API: process.env.CHALLENGE_API || 'http://localhost:4000/v5/challenges'
+  CHALLENGE_API: process.env.CHALLENGE_API || 'http://localhost:4000/v5/challenges',
+
+  IGNORED_ORIGINATORS: process.env.IGNORED_ORIGINATORS ? process.env.IGNORED_ORIGINATORS.split(',') : ['legacy-migration-script']
 }
