@@ -150,4 +150,3 @@ npm run e2e:cov
 
 Refer to the verification document `Verification.md`
 
-Commit to force redeploy
