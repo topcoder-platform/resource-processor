@@ -10,7 +10,9 @@
     "test": "mocha test/unit/test.js --timeout 20000 --exit",
     "test:cov": "nyc --reporter=html --reporter=text mocha test/unit/test.js --timeout 20000 --exit",
     "e2e": "mocha test/e2e/test.js --timeout 20000 --exit",
-    "e2e:cov": "nyc --reporter=html --reporter=text mocha test/e2e/test.js --timeout 20000 --exit"
+    "e2e:cov": "nyc --reporter=html --reporter=text mocha test/e2e/test.js --timeout 20000 --exit",
+    "prepare": "npm run snyk-protect",
+    "snyk-protect": "snyk-protect"
   },
   "author": "TCSCODER",
   "license": "none",
@@ -25,12 +27,13 @@
     "config": "^3.0.1",
     "get-parameter-names": "^0.3.0",
     "joi": "^14.0.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.20",
     "no-kafka": "^3.4.3",
     "superagent": "^5.1.0",
     "tc-core-library-js": "appirio-tech/tc-core-library-js.git#v2.6.4",
     "topcoder-healthcheck-dropin": "^1.0.2",
-    "winston": "^3.1.0"
+    "winston": "^3.1.0",
+    "@snyk/protect": "latest"
   },
   "engines": {
     "node": "10.x"
@@ -49,5 +52,6 @@
       "test/unit/*.js",
       "test/e2e/*.js"
     ]
-  }
+  },
+  "snyk": true
 }
