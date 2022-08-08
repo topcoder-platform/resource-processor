@@ -188,6 +188,41 @@ async function deleteResource (challengeId, memberHandle, roleId) {
   return res.body
 }
 
+/**
+ * Search members of the given group ids
+ * @param {Array} members 
+ * @param {Array} groupIds 
+ * @return {Array} filtered members
+ */
+async function filterMemberForGroups(memberIds, groupIds) {
+  for (const memberId of memberIds) {
+    const res = await Promise.allSettled(groupIds.map(groupId => memberGroupsCall(groupId, memberId)));
+    const memberGroups =_.compact(_.flattenDeep(_.map(res, 'value')))
+
+    if (memberGroups.length != groupIds.length) memberList.push(memberId)
+  }  
+}
+
+/**
+ * Return the memberId if member is part of the groups 
+ * @param {String} groupId 
+ * @param {String} memberId 
+ * @returns {String} memberId in case of member of group
+ */
+async function memberGroupsCall(groupId, memberId) {
+  // M2M token is cached by 'tc-core-library-js' lib
+  const token = await getM2MToken()
+
+  const url = `${config.GROUPS_API_URL}/${groupId}/members/${memberId}`
+  const res = await superagent
+    .get(url)
+    .set('Authorization', `Bearer ${token}`)
+    .timeout(config.REQUEST_TIMEOUT)
+  
+  return memberId
+}
+
+
 module.exports = {
   getKafkaOptions,
   getProject,
@@ -195,5 +230,6 @@ module.exports = {
   createResource,
   deleteResource,
   getProjectChallenges,
-  getChallengeResources
+  getChallengeResources,
+  filterMemberForGroups
 }

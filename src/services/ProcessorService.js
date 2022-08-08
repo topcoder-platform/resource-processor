@@ -24,7 +24,20 @@ async function handleChallengeCreate (message) {
   logger.info(`Found member ids [${memberIds.join(', ')}] of project id ${projectId}`)
 
   // search members
-  const members = await helper.searchMembers(memberIds)
+  let members = await helper.searchMembers(memberIds)
+
+  // fetch all members of groups
+  const groupIds = _.difference(message.payload.groups, config.GROUPS_TO_IGNORE)
+
+  // filter members who are NOT part of all the groups
+  if (groupIds.length > 0 && members.length > 0) {
+    const memberIds = members.map(m => m.id)
+    const filteredMemberIds = await helper.filterMemberForGroups(memberIds, groupIds)
+
+    // remove the members who are not part of all the groups
+    members = members.filter(m => !filteredMemberIds.includes(m.id))
+  }
+
   // create resource for each member
   for (const member of members) {
     const resource = await helper.createResource(challengeId, member.handle)
@@ -34,6 +47,49 @@ async function handleChallengeCreate (message) {
 }
 
 handleChallengeCreate.schema = {
+  message: Joi.object().keys({
+    topic: Joi.string().required(),
+    originator: Joi.string().required(),
+    timestamp: Joi.date().required(),
+    'mime-type': Joi.string().required(),
+    payload: Joi.object().keys({
+      id: Joi.string().uuid().required(), // challenge id
+      projectId: Joi.number().integer().positive().required()
+    }).unknown(true).required()
+  }).required()
+}
+
+/**
+ * Process Kafka message of challenge updated
+ * @param {Object} message the challenge update message
+ */
+ async function handleChallengeUpdate (message) {
+  const challengeId = message.payload.id
+  const projectId = message.payload.projectId
+  logger.info(`Process message of challenge id ${challengeId} and project id ${projectId}`)
+
+  // get challenge resources (all observers for the challenge)
+  let challengeResources = await helper.getChallengeResources(challengeId, config.RESOURCE_ROLE_ID)
+
+  // fetch all members of groups
+  const groupIds = _.difference(message.payload.groups, config.GROUPS_TO_IGNORE)
+
+  // filter members who are NOT part of all the groups
+  if (groupIds.length > 0 && challengeResources.length > 0) {
+    const memberIds = challengeResources.map(cr => cr.memberId)
+    const filteredMemberIds = await helper.filterMemberForGroups(memberIds, groupIds)
+
+    // filter the members who are not part of all the groups
+    challengeResources = challengeResources.filter(member => filteredMemberIds.includes(member.memberId) )
+    
+    // remove members from resources who are not part of all the groups
+    await Promise.allSettled(challengeResources.map(member => helper.deleteResource(challengeId, member.memberHandle, config.RESOURCE_ROLE_ID)));
+  }
+
+  logger.info(`Successfully processed message of challenge id ${challengeId} and project id ${projectId}`)
+}
+
+handleChallengeUpdate.schema = {
   message: Joi.object().keys({
     topic: Joi.string().required(),
     originator: Joi.string().required(),
@@ -61,8 +117,8 @@ async function handleProjectMemberChange (projectId, userId, isDeleted) {
   const [memberDetails] = await helper.searchMembers([userId])
   const { handle } = memberDetails
   for (const challenge of challenges) {
-    const challenngeResources = await helper.getChallengeResources(challenge.id, config.MANAGER_RESOURCE_ROLE_ID)
-    const existing = _.find(challenngeResources, r => _.toString(r.memberId) === _.toString(userId))
+    const challengeResources = await helper.getChallengeResources(challenge.id, config.MANAGER_RESOURCE_ROLE_ID)
+    const existing = _.find(challengeResources, r => _.toString(r.memberId) === _.toString(userId))
     if (isDeleted) {
       if (existing) {
         await helper.deleteResource(challenge.id, handle, config.MANAGER_RESOURCE_ROLE_ID)
