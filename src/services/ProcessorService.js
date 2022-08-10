@@ -63,7 +63,7 @@ handleChallengeCreate.schema = {
  * Process Kafka message of challenge updated
  * @param {Object} message the challenge update message
  */
- async function handleChallengeUpdate (message) {
+async function handleChallengeUpdate (message) {
   const challengeId = message.payload.id
   const projectId = message.payload.projectId
   logger.info(`Process message of challenge id ${challengeId} and project id ${projectId}`)
@@ -80,10 +80,10 @@ handleChallengeCreate.schema = {
     const filteredMemberIds = await helper.filterMemberForGroups(memberIds, groupIds)
 
     // filter the members who are not part of all the groups
-    challengeResources = challengeResources.filter(member => filteredMemberIds.includes(member.memberId) )
-    
+    challengeResources = challengeResources.filter(member => filteredMemberIds.includes(member.memberId))
+
     // remove members from resources who are not part of all the groups
-    await Promise.allSettled(challengeResources.map(member => helper.deleteResource(challengeId, member.memberHandle, config.RESOURCE_ROLE_ID)));
+    await Promise.allSettled(challengeResources.map(member => helper.deleteResource(challengeId, member.memberHandle, config.RESOURCE_ROLE_ID)))
   }
 
   logger.info(`Successfully processed message of challenge id ${challengeId} and project id ${projectId}`)
