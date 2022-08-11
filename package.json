@@ -21,6 +21,7 @@
     "standard": "^12.0.1"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "bluebird": "^3.5.1",
     "config": "^3.0.1",
     "get-parameter-names": "^0.3.0",
@@ -33,7 +34,7 @@
     "winston": "^3.1.0"
   },
   "engines": {
-    "node": "10.x"
+    "node": "14.x"
   },
   "standard": {
     "ignore": [

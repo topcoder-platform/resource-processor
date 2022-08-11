@@ -83,7 +83,7 @@ async function handleChallengeUpdate (message) {
     challengeResources = challengeResources.filter(member => filteredMemberIds.includes(member.memberId))
 
     // remove members from resources who are not part of all the groups
-    await Promise.allSettled(challengeResources.map(member => helper.deleteResource(challengeId, member.memberHandle, config.RESOURCE_ROLE_ID)))
+    await Promise.all(challengeResources.map(member => helper.deleteResource(challengeId, member.memberHandle, config.RESOURCE_ROLE_ID)))
   }
 
   logger.info(`Successfully processed message of challenge id ${challengeId} and project id ${projectId}`)
@@ -177,7 +177,8 @@ handleMemberRemoved.schema = {
 module.exports = {
   handleChallengeCreate,
   handleMemberAdded,
-  handleMemberRemoved
+  handleMemberRemoved,
+  handleChallengeUpdate
 }
 
 logger.buildService(module.exports)

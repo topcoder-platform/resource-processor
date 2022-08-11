@@ -3,6 +3,7 @@
  */
 
 const _ = require('lodash')
+const axios = require('axios')
 const config = require('config')
 const m2mAuth = require('tc-core-library-js').auth.m2m
 const m2m = m2mAuth(_.pick(config, ['AUTH0_URL', 'AUTH0_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL']))
@@ -198,7 +199,7 @@ async function filterMemberForGroups (memberIds, groupIds) {
   const memberList = []
 
   for (const memberId of memberIds) {
-    const res = await Promise.allSettled(groupIds.map(groupId => memberGroupsCall(groupId, memberId)))
+    const res = await Promise.all(groupIds.map(groupId => memberGroupsCall(groupId, memberId)))
     const memberGroups = _.compact(_.flattenDeep(_.map(res, 'value')))
 
     if (memberGroups.length !== groupIds.length) memberList.push(memberId)
@@ -216,12 +217,20 @@ async function filterMemberForGroups (memberIds, groupIds) {
 async function memberGroupsCall (groupId, memberId) {
   // M2M token is cached by 'tc-core-library-js' lib
   const token = await getM2MToken()
-
   const url = `${config.GROUPS_API_URL}/${groupId}/members/${memberId}`
-  return superagent
-    .get(url)
-    .set('Authorization', `Bearer ${token}`)
-    .timeout(config.REQUEST_TIMEOUT)
+
+  try {
+    const res = await axios
+      .get(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+    return res
+  } catch (error) {
+    return []
+  }
 }
 
 module.exports = {
