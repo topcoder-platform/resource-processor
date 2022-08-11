@@ -3,7 +3,6 @@
  */
 
 const _ = require('lodash')
-const axios = require('axios')
 const config = require('config')
 const m2mAuth = require('tc-core-library-js').auth.m2m
 const m2m = m2mAuth(_.pick(config, ['AUTH0_URL', 'AUTH0_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL']))
@@ -220,14 +219,10 @@ async function memberGroupsCall (groupId, memberId) {
   const url = `${config.GROUPS_API_URL}/${groupId}/members/${memberId}`
 
   try {
-    const res = await axios
-      .get(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-    return res
+    return superagent
+      .get(url)
+      .set('Authorization', `Bearer ${token}`)
+      .timeout(config.REQUEST_TIMEOUT)
   } catch (error) {
     return []
   }
