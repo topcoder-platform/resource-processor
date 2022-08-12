@@ -198,7 +198,7 @@ async function filterMemberForGroups (memberIds, groupIds) {
   const memberList = []
 
   for (const memberId of memberIds) {
-    const res = await Promise.allSettled(groupIds.map(groupId => memberGroupsCall(groupId, memberId)))
+    const res = await Promise.all(groupIds.map(groupId => memberGroupsCall(groupId, memberId)))
     const memberGroups = _.compact(_.flattenDeep(_.map(res, 'value')))
 
     if (memberGroups.length !== groupIds.length) memberList.push(memberId)
@@ -216,12 +216,16 @@ async function filterMemberForGroups (memberIds, groupIds) {
 async function memberGroupsCall (groupId, memberId) {
   // M2M token is cached by 'tc-core-library-js' lib
   const token = await getM2MToken()
-
   const url = `${config.GROUPS_API_URL}/${groupId}/members/${memberId}`
-  return superagent
-    .get(url)
-    .set('Authorization', `Bearer ${token}`)
-    .timeout(config.REQUEST_TIMEOUT)
+
+  try {
+    return superagent
+      .get(url)
+      .set('Authorization', `Bearer ${token}`)
+      .timeout(config.REQUEST_TIMEOUT)
+  } catch (error) {
+    return []
+  }
 }
 
 module.exports = {

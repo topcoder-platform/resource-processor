@@ -33,7 +33,7 @@
     "winston": "^3.1.0"
   },
   "engines": {
-    "node": "10.x"
+    "node": "14.x"
   },
   "standard": {
     "ignore": [
