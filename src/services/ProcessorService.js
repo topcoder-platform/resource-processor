@@ -5,6 +5,7 @@
 const _ = require('lodash')
 const Joi = require('joi')
 const config = require('config')
+
 const logger = require('../common/logger')
 const helper = require('../common/helper')
 
@@ -24,19 +25,7 @@ async function handleChallengeCreate (message) {
   logger.info(`Found member ids [${memberIds.join(', ')}] of project id ${projectId}`)
 
   // search members
-  let members = await helper.searchMembers(memberIds)
-
-  // fetch all members of groups
-  const groupIds = _.difference(message.payload.groups, config.GROUPS_TO_IGNORE)
-
-  // filter members who are NOT part of all the groups
-  if (groupIds.length > 0 && members.length > 0) {
-    const memberIds = members.map(m => m.id)
-    const filteredMemberIds = await helper.filterMemberForGroups(memberIds, groupIds)
-
-    // remove the members who are not part of all the groups
-    members = members.filter(m => !filteredMemberIds.includes(m.id))
-  }
+  const members = await helper.searchMembers(memberIds)
 
   // create resource for each member
   for (const member of members) {
@@ -64,29 +53,33 @@ handleChallengeCreate.schema = {
  * @param {Object} message the challenge update message
  */
 async function handleChallengeUpdate (message) {
+  const legacyId = message.payload.legacyId
   const challengeId = message.payload.id
   const projectId = message.payload.projectId
-  logger.info(`Process message of challenge id ${challengeId} and project id ${projectId}`)
 
-  // get challenge resources (all observers for the challenge)
-  let challengeResources = await helper.getChallengeResources(challengeId, config.RESOURCE_ROLE_ID)
+  if (!legacyId) {
+    logger.info(`Skipping update message of challenge id ${challengeId} and project id ${projectId} as legacyId not present`)
+  } else {
+    logger.info(`Process update message of challenge id ${challengeId} and project id ${projectId}`)
 
-  // fetch all members of groups
-  const groupIds = _.difference(message.payload.groups, config.GROUPS_TO_IGNORE)
+    // get challenge resources (all observers for the challenge)
+    const challengeResources = await helper.getChallengeResourcesV4(legacyId, challengeId)
 
-  // filter members who are NOT part of all the groups
-  if (groupIds.length > 0 && challengeResources.length > 0) {
-    const memberIds = challengeResources.map(cr => cr.memberId)
-    const filteredMemberIds = await helper.filterMemberForGroups(memberIds, groupIds)
+    // get all challenge groups
+    const groupIds = _.difference(message.payload.groups, config.GROUPS_TO_IGNORE)
 
-    // filter the members who are not part of all the groups
-    challengeResources = challengeResources.filter(member => filteredMemberIds.includes(member.memberId))
+    // filter members who are NOT part of all the groups
+    if (groupIds.length > 0 && challengeResources.length > 0) {
+      let memberIds = challengeResources.map(resource => resource['properties']['External Reference ID'])
 
-    // remove members from resources who are not part of all the groups
-    await Promise.all(challengeResources.map(member => helper.deleteResource(challengeId, member.memberHandle, config.RESOURCE_ROLE_ID)))
+      const filteredResources = await helper.filterMemberForGroups(memberIds, groupIds)
+      const resourcesToDelete = challengeResources.filter(resource => filteredResources.includes(resource['properties']['External Reference ID']))
+
+      await helper.deleteResourcesV4(challengeId, resourcesToDelete)
+    }
+
+    logger.info(`Successfully processed update message of challenge id ${challengeId} and project id ${projectId}`)
   }
-
-  logger.info(`Successfully processed message of challenge id ${challengeId} and project id ${projectId}`)
 }
 
 handleChallengeUpdate.schema = {
