@@ -26,6 +26,9 @@ module.exports = {
   CHALLENGE_UPDATE_TOPIC: process.env.CHALLENGE_UPDATE_TOPIC || 'challenge.notification.update',
   PROJECT_MEMBER_ADDED_TOPIC: process.env.PROJECT_MEMBER_ADDED_TOPIC || 'connect.notification.project.member.joined',
   PROJECT_MEMBER_REMOVED_TOPIC: process.env.PROJECT_MEMBER_REMOVED_TOPIC || 'connect.notification.project.member.removed',
+  KAFKA_MESSAGE_ORIGINATOR: process.env.KAFKA_MESSAGE_ORIGINATOR || 'resource-processor',
+  RESOURCE_DELETE_TOPIC: process.env.RESOURCE_DELETE_TOPIC || 'challenge.action.resource.delete',
+  KAFKA_ERROR_TOPIC: process.env.KAFKA_ERROR_TOPIC || 'common.error.reporting',
 
   // superagent request timeout in milliseconds
   REQUEST_TIMEOUT: process.env.REQUEST_TIMEOUT ? Number(process.env.REQUEST_TIMEOUT) : 20000,
@@ -37,10 +40,13 @@ module.exports = {
   SEARCH_MEMBERS_API_BASE: process.env.SEARCH_MEMBERS_API_BASE || 'https://api.topcoder-dev.com/v3/members/_search',
   RESOURCES_API: process.env.RESOURCES_API || 'http://localhost:4000/v5/resources',
   CHALLENGE_API: process.env.CHALLENGE_API || 'http://localhost:4000/v5/challenges',
+  V4_RESOURCES_API: process.env.V4_RESOURCES_API || 'http://localhost:4000/v4/challenges/',
 
   IGNORED_ORIGINATORS: process.env.IGNORED_ORIGINATORS ? process.env.IGNORED_ORIGINATORS.split(',') : ['legacy-migration-script'],
 
   GROUPS_TO_IGNORE: process.env.GROUPS_TO_IGNORE ? process.env.GROUPS_TO_IGNORE.split(',') : ['72a0b8a0-aa45-44f7-86c2-bf9de6321e5b'],
-  GROUPS_API_URL: process.env.GROUPS_API_URL || 'http://localhost:4000/v5/groups'
+  GROUPS_API_URL: process.env.GROUPS_API_URL || 'http://localhost:4000/v5/groups',
+
+  BUSAPI_URL: process.env.BUSAPI_URL || 'https://api.topcoder-dev.com/v5'
 
 }

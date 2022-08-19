@@ -2,7 +2,7 @@
  * The application entry point
  */
 
-global.Promise = require('bluebird')
+const QPromise = require('bluebird')
 const config = require('config')
 const Kafka = require('no-kafka')
 const _ = require('lodash')
@@ -15,7 +15,7 @@ const ProcessorService = require('./services/ProcessorService')
 const consumer = new Kafka.GroupConsumer(helper.getKafkaOptions())
 
 // data handler
-const dataHandler = (messageSet, topic, partition) => Promise.each(messageSet, (m) => {
+const dataHandler = (messageSet, topic, partition) => QPromise.each(messageSet, (m) => {
   const message = m.message.value.toString('utf8')
   logger.info(`Handle Kafka event message; Topic: ${topic}; Partition: ${partition}; Offset: ${
     m.offset}; Message: ${message}.`)
