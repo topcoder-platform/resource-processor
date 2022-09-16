@@ -2,9 +2,10 @@
  * The application entry point
  */
 
-global.Promise = require('bluebird')
+const QPromise = require('bluebird')
 const config = require('config')
 const Kafka = require('no-kafka')
+const _ = require('lodash')
 const healthcheck = require('topcoder-healthcheck-dropin')
 const logger = require('./common/logger')
 const helper = require('./common/helper')
@@ -14,7 +15,7 @@ const ProcessorService = require('./services/ProcessorService')
 const consumer = new Kafka.GroupConsumer(helper.getKafkaOptions())
 
 // data handler
-const dataHandler = (messageSet, topic, partition) => Promise.each(messageSet, (m) => {
+const dataHandler = (messageSet, topic, partition) => QPromise.each(messageSet, (m) => {
   const message = m.message.value.toString('utf8')
   logger.info(`Handle Kafka event message; Topic: ${topic}; Partition: ${partition}; Offset: ${
     m.offset}; Message: ${message}.`)
@@ -34,14 +35,20 @@ const dataHandler = (messageSet, topic, partition) => Promise.each(messageSet, (
   }
 
   return (async () => {
-    if (topic === config.CHALLENGE_CREATE_TOPIC) {
-      await ProcessorService.handleChallengeCreate(messageJSON)
-    } else if (topic === config.PROJECT_MEMBER_ADDED_TOPIC) {
-      await ProcessorService.handleMemberAdded(messageJSON)
-    } else if (topic === config.PROJECT_MEMBER_REMOVED_TOPIC) {
-      await ProcessorService.handleMemberRemoved(messageJSON)
+    if (_.includes(config.IGNORED_ORIGINATORS, messageJSON.originator)) {
+      logger.error(`The message originator is in the ignored list. Originator: ${messageJSON.originator}`)
+    } else {
+      if (topic === config.CHALLENGE_CREATE_TOPIC) {
+        await ProcessorService.handleChallengeCreate(messageJSON)
+      } else if (topic === config.CHALLENGE_UPDATE_TOPIC) {
+        await ProcessorService.handleChallengeUpdate(messageJSON)
+      } else if (topic === config.PROJECT_MEMBER_ADDED_TOPIC) {
+        await ProcessorService.handleMemberAdded(messageJSON)
+      } else if (topic === config.PROJECT_MEMBER_REMOVED_TOPIC) {
+        await ProcessorService.handleMemberRemoved(messageJSON)
+      }
+      logger.debug('Successfully processed message')
     }
-    logger.debug('Successfully processed message')
   })()
     // commit offset
     .then(() => consumer.commitOffset({ topic, partition, offset: m.offset }))
@@ -66,6 +73,7 @@ consumer
   .init([{
     subscriptions: [
       config.CHALLENGE_CREATE_TOPIC,
+      config.CHALLENGE_UPDATE_TOPIC,
       config.PROJECT_MEMBER_ADDED_TOPIC,
       config.PROJECT_MEMBER_REMOVED_TOPIC
     ],
