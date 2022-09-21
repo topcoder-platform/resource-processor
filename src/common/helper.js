@@ -269,7 +269,11 @@ async function deleteResourcesV4 (challengeId, resources) {
     })
   })
 
+  // remove resources from legacy db using v4 API
   await Promise.allSettled(payloads.map(payload => postEvent(config.RESOURCE_DELETE_TOPIC, payload)))
+
+  // remove resources from dynamodb
+  await Promise.allSettled(payloads.map(payload => deleteResource(challengeId, payload.memberHandle)))
 }
 
 /**
