@@ -4,15 +4,9 @@
 
 const _ = require('lodash')
 const config = require('config')
-const busApi = require('tc-bus-api-wrapper')
-const busApiClient = busApi(_.pick(config, ['AUTH0_URL', 'AUTH0_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_CLIENT_ID',
-  'AUTH0_CLIENT_SECRET', 'BUSAPI_URL', 'KAFKA_ERROR_TOPIC', 'AUTH0_PROXY_SERVER_URL']))
 const m2mAuth = require('tc-core-library-js').auth.m2m
 const m2m = m2mAuth(_.pick(config, ['AUTH0_URL', 'AUTH0_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL']))
 const superagent = require('superagent')
-const { v4: uuid } = require('uuid')
-
-const logger = require('./logger')
 
 /**
  * Get Kafka options
@@ -194,23 +188,6 @@ async function deleteResource (challengeId, memberHandle, roleId) {
   return res.body
 }
 
-/**
- * Send Kafka event message
- * @params {String} topic the topic name
- * @params {Object} payload the payload
- */
-async function postEvent (topic, payload) {
-  logger.info(`Publish event to Kafka topic ${topic}`)
-  const message = {
-    topic,
-    originator: config.KAFKA_MESSAGE_ORIGINATOR,
-    timestamp: new Date().toISOString(),
-    'mime-type': 'application/json',
-    payload
-  }
-  await busApiClient.postEvent(message)
-}
-
 module.exports = {
   getKafkaOptions,
   getProject,
@@ -218,5 +195,5 @@ module.exports = {
   createResource,
   deleteResource,
   getProjectChallenges,
-  getChallengeResources,
+  getChallengeResources
 }
