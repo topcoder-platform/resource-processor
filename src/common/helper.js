@@ -123,24 +123,6 @@ async function getChallengeResources (challengeId, roleId) {
 }
 
 /**
- * Get challenge resources using v4 API
- * @param {String} legacyId the legacy challenge ID
- * @param {String} challengeId the challenge ID
- * @return {Array} list of observers
- */
-async function getChallengeResourcesV4 (legacyId, challengeId) {
-  const token = await getM2MToken()
-  const url = `${config.V4_RESOURCES_API}` + legacyId + '/resources'
-  const res = await superagent.get(url).set('Authorization', `Bearer ${token}`)
-  if (res.status !== 200) {
-    throw new Error(`Failed to get resources for challenge id ${challengeId}: ${JSON.stringify(_.get(res.body, 'result.content'))}`)
-  }
-
-  // TODO: Make generic and not hardcoded `OBSERVER`
-  return _.filter(_.get(res.body, 'result.content'), { role: 'Observer' })
-}
-
-/**
  * Search members of given member ids
  * @param {Array} memberIds the member ids
  * @return {Array} searched members
@@ -213,70 +195,6 @@ async function deleteResource (challengeId, memberHandle, roleId) {
 }
 
 /**
- * Search members of the given group ids
- * @param {Array} members
- * @param {Array} groupIds
- * @return {Array} filtered members
- */
-async function filterMemberForGroups (memberIds, groupIds) {
-  const memberList = []
-
-  for (const memberId of memberIds) {
-    const res = await Promise.allSettled(groupIds.map(groupId => checkMemberGroup(groupId, memberId)))
-    const memberGroups = _.compact(_.flattenDeep(_.map(res, 'value')))
-
-    if (memberGroups.length !== groupIds.length) memberList.push(memberId)
-  }
-
-  return memberList
-}
-
-/**
- * Check for membership against the provided group
- * @param {String} groupId
- * @param {String} memberId
- * @returns {String} memberId in case of member of group
- */
-async function checkMemberGroup (groupId, memberId) {
-  // M2M token is cached by 'tc-core-library-js' lib
-  const token = await getM2MToken()
-  const url = `${config.GROUPS_API_URL}/${groupId}/members/${memberId}`
-
-  return superagent
-    .get(url)
-    .set('Authorization', `Bearer ${token}`)
-    .timeout(config.REQUEST_TIMEOUT)
-}
-
-/**
- * Remove resources using V4 API
- * @param {String} groupId
- * @param {String} memberId
- * @returns {String} memberId in case of member of group
- */
-async function deleteResourcesV4 (challengeId, resources) {
-  const payloads = []
-
-  resources.map(resource => {
-    payloads.push({
-      id: uuid(),
-      challengeId,
-      memberId: resource['properties']['External Reference ID'],
-      memberHandle: resource['properties']['Handle'],
-      roleId: config.RESOURCE_ROLE_ID,
-      created: resource['properties']['Handle'],
-      createdBy: new Date().toUTCString()
-    })
-  })
-
-  // remove resources from legacy db using v4 API
-  await Promise.allSettled(payloads.map(payload => postEvent(config.RESOURCE_DELETE_TOPIC, payload)))
-
-  // remove resources from dynamodb
-  await Promise.allSettled(payloads.map(payload => deleteResource(challengeId, payload.memberHandle)))
-}
-
-/**
  * Send Kafka event message
  * @params {String} topic the topic name
  * @params {Object} payload the payload
@@ -301,7 +219,4 @@ module.exports = {
   deleteResource,
   getProjectChallenges,
   getChallengeResources,
-  filterMemberForGroups,
-  getChallengeResourcesV4,
-  deleteResourcesV4
 }

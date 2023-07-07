@@ -40,8 +40,6 @@ const dataHandler = (messageSet, topic, partition) => QPromise.each(messageSet, 
     } else {
       if (topic === config.CHALLENGE_CREATE_TOPIC) {
         await ProcessorService.handleChallengeCreate(messageJSON)
-      } else if (topic === config.CHALLENGE_UPDATE_TOPIC) {
-        await ProcessorService.handleChallengeUpdate(messageJSON)
       } else if (topic === config.PROJECT_MEMBER_ADDED_TOPIC) {
         await ProcessorService.handleMemberAdded(messageJSON)
       } else if (topic === config.PROJECT_MEMBER_REMOVED_TOPIC) {
@@ -73,7 +71,6 @@ consumer
   .init([{
     subscriptions: [
       config.CHALLENGE_CREATE_TOPIC,
-      config.CHALLENGE_UPDATE_TOPIC,
       config.PROJECT_MEMBER_ADDED_TOPIC,
       config.PROJECT_MEMBER_REMOVED_TOPIC
     ],
