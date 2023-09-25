@@ -71,6 +71,7 @@ workflows:
             branches:
               only:
                 - develop
+                - PLAT-3502
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
