@@ -69,7 +69,7 @@ handleMemberAdded.schema = Joi.object({
       userId: Joi.number().integer().positive().required()
     }).unknown(true).required()
   }).required(),
-  projectRole: Joi.string().valid(_.values(PROJECT_MEMBER_ROLE))
+  projectRole: Joi.string().valid(..._.values(PROJECT_MEMBER_ROLE))
 }).required()
 
 /**
