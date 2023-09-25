@@ -6,7 +6,7 @@ const _ = require('lodash')
 const config = require('config')
 const m2mAuth = require('tc-core-library-js').auth.m2m
 const m2m = m2mAuth(_.pick(config, ['AUTH0_URL', 'AUTH0_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL']))
-const superagent = require('superagent')
+const axios = require('axios')
 
 /**
  * Get Kafka options
@@ -22,7 +22,7 @@ function getKafkaOptions () {
 
 /**
  * Get M2M token.
- * @return {String} the M2M token
+ * @return {Promise<String>} the M2M token
  */
 async function getM2MToken () {
   return m2m.getMachineToken(config.AUTH0_CLIENT_ID, config.AUTH0_CLIENT_SECRET)
@@ -36,15 +36,10 @@ async function getM2MToken () {
 async function getProject (projectId) {
   // M2M token is cached by 'tc-core-library-js' lib
   const token = await getM2MToken()
-  const url = `${config.GET_PROJECT_API_BASE}/${projectId}`
-  const res = await superagent
-    .get(url)
-    .set('Authorization', `Bearer ${token}`)
-    .timeout(config.REQUEST_TIMEOUT)
-  if (res.status !== 200) {
-    throw new Error(`Failed to get project details of id ${projectId}: ${_.get(res.body, 'message')}`)
-  }
-  return res.body
+  const { data } = await axios.get(`${config.PROJECT_API}/${projectId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return data
 }
 
 /**
@@ -53,28 +48,19 @@ async function getProject (projectId) {
  */
 async function getProjectChallenges (projectId) {
   const token = await getM2MToken()
-  const url = `${config.CHALLENGE_API}`
   let allChallenges = []
   let page = 1
   while (true) {
-    const res = await superagent
-      .get(url)
-      .query({
-        projectId,
-        isLightweight: true,
-        perPage: 100
-      })
-      .set('Authorization', `Bearer ${token}`)
-    if (res.status !== 200) {
-      throw new Error(`Failed to get project details of id ${projectId}: ${_.get(res.body, 'message')}`)
-    }
-    const challenges = res.body || []
-    if (challenges.length === 0) {
+    const res = await axios.get(`${config.CHALLENGE_API}?projectId=${projectId}&isLightweight=true&page=${page}&perPage=100`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const challenges = res.data
+    if (_.isEmpty(challenges)) {
       break
     }
-    allChallenges = allChallenges.concat(_.map(challenges, c => _.pick(c, ['id'])))
+    allChallenges = _.concat(allChallenges, _.map(_.filter(challenges, c => _.includes(['New', 'Draft', 'Active'], c.status)), c => _.pick(c, ['id'])))
     page += 1
-    if (res.headers['x-total-pages'] && page > Number(res.headers['x-total-pages'])) {
+    if (res.headers['x-total-pages'] && page > _.toNumber(res.headers['x-total-pages'])) {
       break
     }
   }
@@ -82,66 +68,16 @@ async function getProjectChallenges (projectId) {
 }
 
 /**
- * Get challenge resources
- * @param {String} challengeId the challenge ID
- * @param {String} roleId the role ID
+ * Search members of given member id
+ * @param {Number} userId the member id
+ * @return {Promise<String>|undefined} searched member
  */
-async function getChallengeResources (challengeId, roleId) {
+async function getMemberHandleById (userId) {
   const token = await getM2MToken()
-  const url = `${config.RESOURCES_API}`
-  let allResources = []
-  let page = 1
-  while (true) {
-    const res = await superagent
-      .get(url)
-      .query({
-        challengeId,
-        roleId: roleId || config.RESOURCE_ROLE_ID,
-        perPage: 100
-      })
-      .set('Authorization', `Bearer ${token}`)
-    if (res.status !== 200) {
-      throw new Error(`Failed to get resources for challenge id ${challengeId}: ${_.get(res.body, 'message')}`)
-    }
-    const resources = res.body || []
-    if (resources.length === 0) {
-      break
-    }
-    allResources = allResources.concat(resources)
-    page += 1
-    if (res.headers['x-total-pages'] && page > Number(res.headers['x-total-pages'])) {
-      break
-    }
-  }
-  return allResources
-}
-
-/**
- * Search members of given member ids
- * @param {Array} memberIds the member ids
- * @return {Array} searched members
- */
-async function searchMembers (memberIds) {
-  if (!memberIds || memberIds.length === 0) {
-    return []
-  }
-  // M2M token is cached by 'tc-core-library-js' lib
-  const token = await getM2MToken()
-  const res = await superagent
-    .get(config.SEARCH_MEMBERS_API_BASE)
-    .set('Authorization', `Bearer ${token}`)
-    .query({
-      fields: 'handle',
-      query: _.map(memberIds, id => `userId:${id}`).join(' OR '),
-      limit: memberIds.length
-    })
-    .timeout(config.REQUEST_TIMEOUT)
-  const success = _.get(res.body, 'result.success')
-  const status = _.get(res.body, 'result.status')
-  if (!success || !status || status < 200 || status >= 300) {
-    throw new Error(`Failed to search members: ${_.get(res.body, 'result.content')}`)
-  }
-  return _.get(res.body, 'result.content') || []
+  const { data: members } = await axios.get(`${config.get('MEMBER_API')}?fields=handle&userId=${userId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return _.get(members, '[0].handle')
 }
 
 /**
@@ -149,21 +85,17 @@ async function searchMembers (memberIds) {
  * @param {String} challengeId the challenge id
  * @param {String} memberHandle the member handle
  * @param {String} roleId the role ID
- * @return {Object} the created resource
  */
 async function createResource (challengeId, memberHandle, roleId) {
   // M2M token is cached by 'tc-core-library-js' lib
   const token = await getM2MToken()
-  const res = await superagent
-    .post(config.RESOURCES_API)
-    .set('Authorization', `Bearer ${token}`)
-    .send({
-      challengeId,
-      memberHandle,
-      roleId: roleId || config.RESOURCE_ROLE_ID
-    })
-    .timeout(config.REQUEST_TIMEOUT)
-  return res.body
+  const res = await axios.post(config.get('RESOURCES_API'), { challengeId, memberHandle, roleId }, {
+    headers: { Authorization: `Bearer ${token}` },
+    validateStatus: _ => true
+  })
+  if (res.status > 201) {
+    console.error(JSON.stringify(res.data))
+  }
 }
 
 /**
@@ -171,29 +103,25 @@ async function createResource (challengeId, memberHandle, roleId) {
  * @param {String} challengeId the challenge id
  * @param {String} memberHandle the member handle
  * @param {String} roleId the role ID
- * @return {Object} the created resource
  */
 async function deleteResource (challengeId, memberHandle, roleId) {
   // M2M token is cached by 'tc-core-library-js' lib
   const token = await getM2MToken()
-  const res = await superagent
-    .delete(config.RESOURCES_API)
-    .set('Authorization', `Bearer ${token}`)
-    .send({
-      challengeId,
-      memberHandle,
-      roleId: roleId || config.RESOURCE_ROLE_ID
-    })
-    .timeout(config.REQUEST_TIMEOUT)
-  return res.body
+  const res = await axios.delete(config.get('RESOURCES_API'), {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { challengeId, memberHandle, roleId },
+    validateStatus: _ => true
+  })
+  if (res.status > 204) {
+    console.error(JSON.stringify(res.data))
+  }
 }
 
 module.exports = {
   getKafkaOptions,
   getProject,
-  searchMembers,
+  getMemberHandleById,
   createResource,
   deleteResource,
-  getProjectChallenges,
-  getChallengeResources
+  getProjectChallenges
 }
