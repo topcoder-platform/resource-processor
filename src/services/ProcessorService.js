@@ -8,6 +8,7 @@ const config = require('config')
 
 const logger = require('../common/logger')
 const helper = require('../common/helper')
+const { PROJECT_MEMBER_ROLE, PROJECT_TO_RESOURCE_ROLE } = require('../common/constants')
 
 /**
  * Process Kafka message of challenge created
@@ -20,22 +21,14 @@ async function handleChallengeCreate (message) {
 
   // get project details
   const project = await helper.getProject(projectId)
-  // get member ids
-  const memberIds = _.map(project.members, m => m.userId)
-  logger.info(`Found member ids [${memberIds.join(', ')}] of project id ${projectId}`)
-
-  // search members
-  const members = await helper.searchMembers(memberIds)
-
   // create resource for each member
-  for (const member of members) {
-    const resource = await helper.createResource(challengeId, member.handle)
-    logger.info(`Created resource: ${JSON.stringify(resource)}`)
+  for (const member of project.members) {
+    await helper.createResource(challengeId, member.handle, PROJECT_TO_RESOURCE_ROLE[member.role])
   }
   logger.info(`Successfully processed message of challenge id ${challengeId} and project id ${projectId}`)
 }
 
-handleChallengeCreate.schema = {
+handleChallengeCreate.schema = Joi.object({
   message: Joi.object().keys({
     topic: Joi.string().required(),
     originator: Joi.string().required(),
@@ -46,46 +39,26 @@ handleChallengeCreate.schema = {
       projectId: Joi.number().integer().positive().required()
     }).unknown(true).required()
   }).required()
-}
-
-/**
- * Handle project member changes
- * @param {Number} projectId the project ID
- * @param {Number} userId the user ID
- * @param {Boolean} isDeleted flag to indicate that a member has been deleted
- */
-async function handleProjectMemberChange (projectId, userId, isDeleted) {
-  // verify project exists
-  await helper.getProject(projectId)
-  // get project challenges
-  const challenges = await helper.getProjectChallenges(projectId)
-  // get member handle
-  const [memberDetails] = await helper.searchMembers([userId])
-  const { handle } = memberDetails
-  for (const challenge of challenges) {
-    const challengeResources = await helper.getChallengeResources(challenge.id, config.MANAGER_RESOURCE_ROLE_ID)
-    const existing = _.find(challengeResources, r => _.toString(r.memberId) === _.toString(userId))
-    if (isDeleted) {
-      if (existing) {
-        await helper.deleteResource(challenge.id, handle, config.MANAGER_RESOURCE_ROLE_ID)
-      }
-    } else {
-      if (!existing) {
-        await helper.createResource(challenge.id, handle, config.MANAGER_RESOURCE_ROLE_ID)
-      }
-    }
-  }
-}
+}).required()
 
 /**
  * Process kafka message of member added to a project
  * @param {Object} message the member added message
  */
-async function handleMemberAdded (message) {
-  await handleProjectMemberChange(message.payload.projectId, message.payload.userId)
+async function handleMemberAdded (message, projectRole) {
+  const challenges = await helper.getProjectChallenges(message.payload.projectId)
+  console.info(`Challenge count: ${challenges.length}`)
+  const handle = await helper.getMemberHandleById(message.payload.userId)
+  if (!handle) {
+    throw new Error(`User not found: ${message.payload.userId}`)
+  }
+  for (const challenge of challenges) {
+    await helper.createResource(challenge.id, handle, PROJECT_TO_RESOURCE_ROLE[projectRole])
+  }
+  logger.info(`Successfully processed message of project id ${message.payload.projectId}`)
 }
 
-handleMemberAdded.schema = {
+handleMemberAdded.schema = Joi.object({
   message: Joi.object().keys({
     topic: Joi.string().required(),
     originator: Joi.string().required(),
@@ -95,18 +68,29 @@ handleMemberAdded.schema = {
       projectId: Joi.number().integer().positive().required(),
       userId: Joi.number().integer().positive().required()
     }).unknown(true).required()
-  }).required()
-}
+  }).required(),
+  projectRole: Joi.string().valid(..._.values(PROJECT_MEMBER_ROLE))
+}).required()
 
 /**
  * Process kafka message of member removed to a project
  * @param {Object} message the member added message
  */
 async function handleMemberRemoved (message) {
-  await handleProjectMemberChange(message.payload.projectId, message.payload.userId, true)
+  const challenges = await helper.getProjectChallenges(message.payload.projectId)
+  console.info(`Challenge count: ${challenges.length}`)
+  const handle = await helper.getMemberHandleById(message.payload.userId)
+  if (!handle) {
+    throw new Error(`User not found: ${message.payload.userId}`)
+  }
+  for (const challenge of challenges) {
+    await helper.deleteResource(challenge.id, handle, config.get('MANAGER_RESOURCE_ROLE_ID'))
+    await helper.deleteResource(challenge.id, handle, config.get('OBSERVER_ROLE_ID'))
+  }
+  logger.info(`Successfully processed message of project id ${message.payload.projectId}`)
 }
 
-handleMemberRemoved.schema = {
+handleMemberRemoved.schema = Joi.object({
   message: Joi.object().keys({
     topic: Joi.string().required(),
     originator: Joi.string().required(),
@@ -117,7 +101,7 @@ handleMemberRemoved.schema = {
       userId: Joi.number().integer().positive().required()
     }).unknown(true).required()
   }).required()
-}
+}).required()
 
 // Exports
 module.exports = {
