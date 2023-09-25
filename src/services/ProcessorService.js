@@ -23,8 +23,7 @@ async function handleChallengeCreate (message) {
   const project = await helper.getProject(projectId)
   // create resource for each member
   for (const member of project.members) {
-    const resource = await helper.createResource(challengeId, member.handle, PROJECT_TO_RESOURCE_ROLE[member.role])
-    logger.info(`Created resource: ${JSON.stringify(resource)}`)
+    await helper.createResource(challengeId, member.handle, PROJECT_TO_RESOURCE_ROLE[member.role])
   }
   logger.info(`Successfully processed message of challenge id ${challengeId} and project id ${projectId}`)
 }
