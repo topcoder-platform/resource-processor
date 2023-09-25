@@ -48,6 +48,7 @@ handleChallengeCreate.schema = Joi.object({
  */
 async function handleMemberAdded (message, projectRole) {
   const challenges = await helper.getProjectChallenges(message.payload.projectId)
+  console.info(`Challenge count: ${challenges.length}`)
   const handle = await helper.getMemberHandleById(message.payload.userId)
   if (!handle) {
     throw new Error(`User not found: ${message.payload.userId}`)
@@ -78,6 +79,7 @@ handleMemberAdded.schema = Joi.object({
  */
 async function handleMemberRemoved (message) {
   const challenges = await helper.getProjectChallenges(message.payload.projectId)
+  console.info(`Challenge count: ${challenges.length}`)
   const handle = await helper.getMemberHandleById(message.payload.userId)
   if (!handle) {
     throw new Error(`User not found: ${message.payload.userId}`)

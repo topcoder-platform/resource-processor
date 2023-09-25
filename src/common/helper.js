@@ -95,6 +95,8 @@ async function createResource (challengeId, memberHandle, roleId) {
   })
   if (res.status > 201) {
     console.error(JSON.stringify(res.data))
+  } else {
+    console.info(`User ${memberHandle} added to challenge ${challengeId} with roleId ${roleId}`)
   }
 }
 
@@ -114,6 +116,8 @@ async function deleteResource (challengeId, memberHandle, roleId) {
   })
   if (res.status > 204) {
     console.error(JSON.stringify(res.data))
+  } else {
+    console.info(`User ${memberHandle} deleted from challenge ${challengeId} with roleId ${roleId}`)
   }
 }
 
