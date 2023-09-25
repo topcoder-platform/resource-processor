@@ -9,6 +9,7 @@ const _ = require('lodash')
 const healthcheck = require('topcoder-healthcheck-dropin')
 const logger = require('./common/logger')
 const helper = require('./common/helper')
+const { PROJECT_MEMBER_ROLE } = require('./common/constants')
 const ProcessorService = require('./services/ProcessorService')
 
 // create consumer
@@ -17,8 +18,7 @@ const consumer = new Kafka.GroupConsumer(helper.getKafkaOptions())
 // data handler
 const dataHandler = (messageSet, topic, partition) => QPromise.each(messageSet, (m) => {
   const message = m.message.value.toString('utf8')
-  logger.info(`Handle Kafka event message; Topic: ${topic}; Partition: ${partition}; Offset: ${
-    m.offset}; Message: ${message}.`)
+  logger.info(`Handle Kafka event message; Topic: ${topic}; Partition: ${partition}; Offset: ${m.offset}; Message: ${message}.`)
   let messageJSON
   try {
     messageJSON = JSON.parse(message)
@@ -41,8 +41,12 @@ const dataHandler = (messageSet, topic, partition) => QPromise.each(messageSet, 
       if (topic === config.CHALLENGE_CREATE_TOPIC) {
         await ProcessorService.handleChallengeCreate(messageJSON)
       } else if (topic === config.PROJECT_MEMBER_ADDED_TOPIC) {
-        await ProcessorService.handleMemberAdded(messageJSON)
-      } else if (topic === config.PROJECT_MEMBER_REMOVED_TOPIC) {
+        await ProcessorService.handleMemberAdded(messageJSON, PROJECT_MEMBER_ROLE.OBSERVER)
+      } else if (topic === config.PROJECT_COPILOT_ADDED_TOPIC) {
+        await ProcessorService.handleMemberAdded(messageJSON, PROJECT_MEMBER_ROLE.COPILOT)
+      } else if (topic === config.PROJECT_MANAGER_ADDED_TOPIC) {
+        await ProcessorService.handleMemberAdded(messageJSON, PROJECT_MEMBER_ROLE.MANAGER)
+      } else if (topic === config.PROJECT_MEMBER_REMOVED_TOPIC || topic === config.PROJECT_MEMBER_LEFT_TOPIC) {
         await ProcessorService.handleMemberRemoved(messageJSON)
       }
       logger.debug('Successfully processed message')
@@ -60,7 +64,9 @@ function check () {
   }
   let connected = true
   consumer.client.initialBrokers.forEach(conn => {
-    logger.debug(`url ${conn.server()} - connected=${conn.connected}`)
+    if (!conn.connected) {
+      logger.error(`url ${conn.server()} - connected=${conn.connected}`)
+    }
     connected = conn.connected & connected
   })
   return connected
@@ -72,7 +78,10 @@ consumer
     subscriptions: [
       config.CHALLENGE_CREATE_TOPIC,
       config.PROJECT_MEMBER_ADDED_TOPIC,
-      config.PROJECT_MEMBER_REMOVED_TOPIC
+      config.PROJECT_COPILOT_ADDED_TOPIC,
+      config.PROJECT_MANAGER_ADDED_TOPIC,
+      config.PROJECT_MEMBER_REMOVED_TOPIC,
+      config.PROJECT_MEMBER_LEFT_TOPIC
     ],
     handler: dataHandler
   }])

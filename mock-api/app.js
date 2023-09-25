@@ -71,7 +71,7 @@ app.get('/v4/projects/:projectId', (req, res) => {
           isPrimary: true,
           id: 12506,
           userId: 88770049,
-          projectId: projectId,
+          projectId,
           deletedBy: null,
           updatedAt: '2020-03-11T22:16:01.731Z'
         },
@@ -82,7 +82,7 @@ app.get('/v4/projects/:projectId', (req, res) => {
           createdBy: 40158997,
           isPrimary: false,
           id: 12508,
-          projectId: projectId,
+          projectId,
           userId: 40158997,
           deletedBy: null,
           updatedAt: '2020-03-14T22:40:31.117Z'

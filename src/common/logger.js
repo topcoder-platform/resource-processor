@@ -4,22 +4,19 @@
 'use strict'
 
 const _ = require('lodash')
-const Joi = require('joi')
-const winston = require('winston')
+const { attempt } = require('joi')
+const { createLogger, format, transports } = require('winston')
 const util = require('util')
 const config = require('config')
 const getParams = require('get-parameter-names')
 
-const format = winston.format
-const transports = []
-if (!config.DISABLE_LOGGING) {
-  transports.push(new winston.transports.Console({
-    format: format.combine(format.colorize(), format.simple())
-  }))
-}
-const logger = winston.createLogger({
+const logger = createLogger({
   level: config.LOG_LEVEL,
-  transports
+  transports: [
+    new transports.Console({
+      format: format.printf((info) => `${info.level}: ${info.message}`)
+    })
+  ]
 })
 
 /**
@@ -38,25 +35,6 @@ logger.logFullError = function (err, signature) { // eslint-disable-line
   if (!err.logged) {
     logger.error(err.stack)
     err.logged = true
-  }
-}
-
-/**
- * Sanitize object.
- * @param {Object} obj the object
- * @returns {Object} the new object with removed properties
- * @private
- */
-function _sanitizeObject (obj) {
-  try {
-    return JSON.parse(JSON.stringify(obj, (name, value) => {
-      if (_.isArray(value) && value.length > 30) {
-        return 'Array(' + value.length + ')'
-      }
-      return value
-    }))
-  } catch (e) {
-    return obj
   }
 }
 
@@ -88,13 +66,13 @@ logger.decorateWithLogging = (service) => {
       logger.debug(`ENTER ${name}`)
       logger.debug('input arguments')
       const args = Array.prototype.slice.call(arguments)
-      logger.debug(util.inspect(_sanitizeObject(_combineObject(params, args))))
+      logger.debug(util.inspect((_combineObject(params, args)), { breakLength: Infinity }))
       try {
         const result = await method.apply(this, arguments)
         logger.debug(`EXIT ${name}`)
         logger.debug('output arguments')
         if (result !== null && result !== undefined) {
-          logger.debug(util.inspect(_sanitizeObject(result)))
+          logger.debug(util.inspect(result, { breakLength: Infinity, maxArrayLength: 5 }))
         }
         return result
       } catch (e) {
@@ -120,7 +98,7 @@ logger.decorateWithValidators = function (service) {
     service[name] = async function () {
       const args = Array.prototype.slice.call(arguments)
       const value = _combineObject(params, args)
-      const normalized = Joi.attempt(value, method.schema)
+      const normalized = attempt(value, method.schema)
 
       const newArgs = []
       // Joi will normalize values

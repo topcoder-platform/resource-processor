@@ -5,8 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "lint": "standard",
-    "lint:fix": "standard --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "mocha test/unit/test.js --timeout 20000 --exit",
     "test:cov": "nyc --reporter=html --reporter=text mocha test/unit/test.js --timeout 20000 --exit",
     "e2e": "mocha test/e2e/test.js --timeout 20000 --exit",
@@ -15,26 +15,30 @@
   "author": "TCSCODER",
   "license": "none",
   "devDependencies": {
+    "eslint": "^8.0.1",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+    "eslint-plugin-promise": "^6.0.0",
     "mocha": "^6.1.4",
     "nyc": "^14.1.1",
-    "should": "^13.2.3",
-    "standard": "^12.0.1"
+    "should": "^13.2.3"
   },
   "dependencies": {
-    "bluebird": "^3.5.1",
-    "config": "^3.0.1",
+    "axios": "^1.5.0",
+    "bluebird": "^3.7.2",
+    "config": "^3.3.9",
     "get-parameter-names": "^0.3.0",
-    "joi": "^14.0.0",
-    "lodash": "^4.17.19",
+    "joi": "^17.10.2",
+    "lodash": "^4.17.21",
     "no-kafka": "^3.4.3",
-    "superagent": "^5.1.0",
     "tc-core-library-js": "appirio-tech/tc-core-library-js.git#v2.6.4",
     "topcoder-healthcheck-dropin": "^1.0.2",
-    "uuid": "^8.3.2",
-    "winston": "^3.1.0"
+    "uuid": "^9.0.1",
+    "winston": "^3.10.0"
   },
   "engines": {
-    "node": "14.x"
+    "node": "18.x"
   },
   "standard": {
     "ignore": [
@@ -52,7 +56,7 @@
     ]
   },
   "volta": {
-    "node": "14.21.3",
+    "node": "18.16.1",
     "yarn": "1.22.19"
   }
 }
